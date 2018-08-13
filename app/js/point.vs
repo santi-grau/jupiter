@@ -1,9 +1,11 @@
 // varying vec2 vUv;
 
 varying vec4 vCol;
+varying float mag;
 
 uniform sampler2D diffuse;
 // uniform sampler2D icoNormal;
+varying float vPointSize;
 
 uniform float time;
 
@@ -223,16 +225,22 @@ vec3 applyAxisAngle( vec3 v, vec3 axis, float angle ){
 	return res;
 }
 
+float map( vec4 v, float m ){
+	float minV = v.x;
+	float maxV = v.y;
+	float minR = v.z;
+	float maxR = v.w;
+	float range = maxR - minR;
+
+	return minR + ( minV * range ) + ( ( maxV * range ) - ( minV * range ) ) * m;
+}
+
 void main() {
 
-	// vCol = texture2D( diffuse, uv );
+	float n = noise( normal, 10.1, 0.9 ) * 0.06;
+	float rn = rnoise( normal, 5.8, 0.75) * 0.025 - 0.01;
 
-	
-
-	float n = noise( normal, 10.1, 0.9 ) * 0.05;
-	float rn = rnoise( normal, 5.8, 0.75) * 0.015 - 0.01;
-
-	// Get the three threshold samples
+	// // Get the three threshold samples	
 	float s = 0.5;
 	float a = 0.8;
 	float t1 = snoise( normal * a ) - s;
@@ -243,22 +251,31 @@ void main() {
 	float sn = snoise( normal * 0.9 ) * threshold;
 	float tn = n + rn + sn;
 
-	float dir = snoise( vec2( 0.0, position.y * 1.0 ) );
+	float dir = snoise( vec2( 0.0, 10.0 + position.y * 6.0 ) );
 	vec3 np = applyAxisAngle( position, normalize( vec3( 0.0, 1.0, 0.0 ) ), M_PI * 2.0 * time * dir );
 
 	float epsilon = atan( position.x / position.z ) - M_PI / 2.0;
-
 	np = applyAxisAngle( np, normalize( vec3( sin( epsilon ), 0.0, cos( epsilon ) ) ), M_PI / 2.0 * tn );
-	np *= 1.0 + n * 0.1;
 	
+	mag = length( np );
+	float angle = acos( np.y / mag ) / M_PI * 2.0;
+	
+
+	float m = ( snoise( vec4( normal, time * 10.0 ) * 10.0 ) + 1.0 ) / 2.0;
+	np *= 1.0 + m * 0.01;
+
+	vCol = vec4( vec3( ( dir  ) ), m );
+	vCol = vec4( ( position.y + 1.0 ) / 2.0, m, 0.0, dir );
+	vCol = texture2D( diffuse, uv );
+	vCol.rgb *= 0.02;
 
 	np *= 200.0;
 
-	vCol = vec4( 0.0, 0.0, 0.0, 1.0 );
-	float col = snoise( vec2( 0.0, n  ) );
-	vCol = vec4( vec3( col ), 1.0 );
+	float pNoise = ( snoise( vec4( normal, time * 10.0 ) * 10.0 ) + 1.0 ) / 2.0;
+	vPointSize = map( vec4( 0, 0.4, 1.0, 15.0 ), pNoise );
+	
 
 	vec4 mvPosition = modelViewMatrix * vec4( np, 1.0 );
 	gl_Position = projectionMatrix * mvPosition;
-	gl_PointSize = 8.0;
+	gl_PointSize = vPointSize;
 }

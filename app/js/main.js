@@ -6,7 +6,7 @@ var Main = function( ) {
 	this.node = document.getElementById('main');
 
 	this.time = Math.random();
-	this.timeInc = 0.001;
+	this.timeInc = 0.0001;
 
 	this.even = true;
 	this.firstPass = true;
@@ -33,40 +33,46 @@ var Main = function( ) {
 	
 	// this.composer = new Composer( this.renderer, this.renderTargetA, this.renderTargetB, this.scene, this.camera );
 
+	this.planetGroup = new THREE.Object3D();
+	var jupiterTexture = new THREE.TextureLoader().load('img/jupiterDiffuse.png');
+	var particleTexture = new THREE.TextureLoader().load('img/ptex.png');
+	var geometry = new THREE.IcosahedronBufferGeometry( 1, 6 );
+	
+	particleTexture.magFilter = THREE.NearestFilter;
+	particleTexture.minFilter = THREE.NearestFilter;
 
-	var jupiterTexture = new THREE.TextureLoader().load('img/color.png');
-	
-	var geometry = new THREE.IcosahedronBufferGeometry( 1, 4 );
-	
 	var material = new THREE.ShaderMaterial({
 		uniforms: {
 			time: { value: this.time },
 			diffuse : { value : jupiterTexture },
+			pointTexture : { value : particleTexture },
 			texturePosition: { value : null },
 		},
 		fragmentShader: require('./point.fs'),
 		vertexShader: require('./point.vs'),
-		side: THREE.DoubleSide,
 		transparent: true,
-		depthTest: true,
-		depthWrite: true
+		// depthTest : false,
+		// depthWrite : false
 	});
 	
+	// this.particles = new THREE.Mesh( geometry, material );
 	this.particles = new THREE.Points(geometry, material);
-	this.planetScene.add( this.particles );
+	this.planetGroup.add( this.particles );
 
 	var geometry = new THREE.SphereGeometry( 199, 32, 32 );
 	var material = new THREE.MeshBasicMaterial( {color: 0x000000} );
 	var sphere = new THREE.Mesh( geometry, material );
-	this.planetScene.add( sphere );
+	this.planetGroup.add( sphere );
+
+	this.planetScene.add( this.planetGroup );
 
 
 
 
 
-	this.renderTargetA = new THREE.WebGLRenderTarget( this.node.offsetWidth * this.settings.scale, this.node.offsetHeight * this.settings.scale, { depthBuffer : false, stencilBuffer : false } );
-	this.renderTargetB = new THREE.WebGLRenderTarget( this.node.offsetWidth * this.settings.scale, this.node.offsetHeight * this.settings.scale, { depthBuffer : false, stencilBuffer : false } );
-	this.renderTargetC = new THREE.WebGLRenderTarget( this.node.offsetWidth * this.settings.scale, this.node.offsetHeight * this.settings.scale, { depthBuffer : false, stencilBuffer : false } );
+	this.renderTargetA = new THREE.WebGLRenderTarget( this.node.offsetWidth * this.settings.scale, this.node.offsetHeight * this.settings.scale, {  } );
+	this.renderTargetB = new THREE.WebGLRenderTarget( this.node.offsetWidth * this.settings.scale, this.node.offsetHeight * this.settings.scale, {  } );
+	this.renderTargetC = new THREE.WebGLRenderTarget( this.node.offsetWidth * this.settings.scale, this.node.offsetHeight * this.settings.scale, {  } );
 
 	this.bufferScene = new THREE.Scene();
 	this.bufferCam = new THREE.OrthographicCamera();
@@ -80,7 +86,8 @@ var Main = function( ) {
 	var material = new THREE.ShaderMaterial( {
 		uniforms: {
 			iChannel0: { value: this.renderTargetA.texture },
-			iChannel1 : { value: this.renderTargetB.texture }
+			iChannel1 : { value: this.renderTargetB.texture },
+			iChannel2 : { value: jupiterTexture },
 		},
 		transparent : true,
 		vertexShader: require('./base.vs'),
@@ -115,7 +122,7 @@ Main.prototype.step = function( time ) {
 
 	this.time += this.timeInc;
 
-	if( this.particles ) this.particles.material.uniforms.time.value = this.time;
+	if( this.particles.material.uniforms ) this.particles.material.uniforms.time.value = this.time;
 
 	if( this.even ){
 		if( this.firstPass ) this.renderer.render( this.planetScene, this.planetCamera, this.renderTargetA );
@@ -124,20 +131,22 @@ Main.prototype.step = function( time ) {
 		this.bufferPlane.material.uniforms.iChannel1.value = this.renderTargetB.texture;
 	} else {
 		this.renderer.render( this.planetScene, this.planetCamera, this.renderTargetB );
-		this.bufferPlane.material.uniforms.iChannel0.value = this.renderTargetB.texture;
-		this.bufferPlane.material.uniforms.iChannel1.value = this.renderTargetC.texture;
+		this.bufferPlane.material.uniforms.iChannel0.value = this.renderTargetC.texture;
+		this.bufferPlane.material.uniforms.iChannel1.value = this.renderTargetB.texture;
 	}
 	
 	this.firstPass = false;
 	this.renderer.render( this.scene, this.camera );
+
+	// this.planetGroup.rotation.y -= 0.0002	
+	// this.planetGroup.rotation.x = Math.sin( this.time ) * 0.1;
+	// this.renderer.render( this.planetScene, this.planetCamera );
 
 	if( this.even ){
 		this.renderer.render( this.scene, this.camera, this.renderTargetC );
 	} else {
 		this.renderer.render( this.scene, this.camera, this.renderTargetA );
 	}
-
-	
 
 	this.even = !this.even;
 };

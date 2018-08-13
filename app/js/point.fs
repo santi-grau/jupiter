@@ -1,3 +1,24 @@
+// varying vec4 vCol;
+// varying float vPointSize;
+
+// uniform sampler2D pointTexture;
+
+// void main() {
+// 	vec3 col = vec3( 1.0 );
+// 	float alpha = 0.0;
+// 	if( vCol.a > 0.3 + ( 1.0 - 0.5 ) * 0.4 ) alpha = 1.0;
+
+// 	float dots = 15.0;
+
+// 	float width = (gl_PointCoord.x / dots);
+// 	float height = (gl_PointCoord.y );
+// 	float x = floor( vPointSize - 1.0 ) / dots;
+// 	float y = 0.0;
+
+// 	gl_FragColor = texture2D( pointTexture, vec2( x + width, y + height ) );
+// }
+
+
 varying vec4 vCol;
 
 void main() {
