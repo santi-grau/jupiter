@@ -6,7 +6,7 @@ var Main = function( ) {
 	this.node = document.getElementById('main');
 
 	this.time = Math.random();
-	this.timeInc = 0.0001;
+	this.timeInc = 0.0005;
 
 	this.even = true;
 	this.firstPass = true;
@@ -34,7 +34,7 @@ var Main = function( ) {
 	// this.composer = new Composer( this.renderer, this.renderTargetA, this.renderTargetB, this.scene, this.camera );
 
 	this.planetGroup = new THREE.Object3D();
-	var jupiterTexture = new THREE.TextureLoader().load('img/jupiterDiffuse.png');
+	
 	var particleTexture = new THREE.TextureLoader().load('img/ptex.png');
 	var geometry = new THREE.IcosahedronBufferGeometry( 1, 6 );
 	
@@ -44,25 +44,38 @@ var Main = function( ) {
 	var material = new THREE.ShaderMaterial({
 		uniforms: {
 			time: { value: this.time },
-			diffuse : { value : jupiterTexture },
+			diffuse : { value : new THREE.TextureLoader().load('img/colorgs.png') },
 			pointTexture : { value : particleTexture },
 			texturePosition: { value : null },
 		},
 		fragmentShader: require('./point.fs'),
 		vertexShader: require('./point.vs'),
 		transparent: true,
-		// depthTest : false,
-		// depthWrite : false
+		depthTest : false,
+		depthWrite : true
 	});
 	
 	// this.particles = new THREE.Mesh( geometry, material );
 	this.particles = new THREE.Points(geometry, material);
 	this.planetGroup.add( this.particles );
 
-	var geometry = new THREE.SphereGeometry( 199, 32, 32 );
-	var material = new THREE.MeshBasicMaterial( {color: 0x000000} );
-	var sphere = new THREE.Mesh( geometry, material );
-	this.planetGroup.add( sphere );
+	var geometry = new THREE.SphereGeometry( 201, 32, 32 );
+	// var material = new THREE.MeshBasicMaterial( {color: 0x000000} );
+	var material = new THREE.ShaderMaterial({
+		uniforms: {
+			time: { value: this.time },
+			turb : { value : new THREE.TextureLoader().load('img/turb.png') },
+			diffuse : { value : new THREE.TextureLoader().load('img/color2.png') },
+			texturePosition: { value : null },
+		},
+		fragmentShader: require('./jupiter.fs'),
+		vertexShader: require('./jupiter.vs'),
+		transparent: true,
+		depthTest : true,
+		depthWrite : true
+	});
+	this.sphere = new THREE.Mesh( geometry, material );
+	this.planetGroup.add( this.sphere );
 
 	this.planetScene.add( this.planetGroup );
 
@@ -87,7 +100,7 @@ var Main = function( ) {
 		uniforms: {
 			iChannel0: { value: this.renderTargetA.texture },
 			iChannel1 : { value: this.renderTargetB.texture },
-			iChannel2 : { value: jupiterTexture },
+			resolution : { value: new THREE.Vector2( this.node.offsetWidth * 2, this.node.offsetHeight * 2 ) }
 		},
 		transparent : true,
 		vertexShader: require('./base.vs'),
@@ -122,6 +135,7 @@ Main.prototype.step = function( time ) {
 
 	this.time += this.timeInc;
 
+	if( this.sphere.material.uniforms ) this.sphere.material.uniforms.time.value = this.time;
 	if( this.particles.material.uniforms ) this.particles.material.uniforms.time.value = this.time;
 
 	if( this.even ){

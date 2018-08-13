@@ -2,6 +2,7 @@ varying vec2 vUv;
 varying vec3 vNormal;
 
 uniform sampler2D diffuse;
+uniform sampler2D turb;
 uniform sampler2D icoNormal;
 
 uniform float time;
@@ -146,7 +147,7 @@ float noise(vec3 position, float frequency, float persistence) {
 	float total = 0.0; // Total value so far
 	float maxAmplitude = 0.0; // Accumulates highest theoretical amplitude
 	float amplitude = 1.0;
-	for (int i = 0; i < 8; i++) {
+	for (int i = 0; i < 4; i++) {
 		total += snoise( vec4( position, time ) * frequency) * amplitude; // Get the noise sample
 		frequency *= 2.0; // Make the wavelength twice as small
 		maxAmplitude += amplitude; // Add to our maximum possible amplitude
@@ -172,12 +173,17 @@ float rnoise(vec3 position, float frequency, float persistence) {
 
 void main( ){
 
-	vec3 normal = ( texture2D( icoNormal, vUv ).rgb - vec3( 0.5 ) ) * 2.0;
-	// normal = vNormal;
+	// vec3 normal = ( texture2D( icoNormal, vUv ).rgb - vec3( 0.5 ) ) * 2.0;
+	vec3 normal = vNormal;
+	float n = 0.0;
+	float sn = 0.0;
+	float rn = 0.0;
 
-	float n = noise( normal, 10.1, 0.9 ) * 0.05;
-	float rn = rnoise( normal, 5.8, 0.75) * 0.015 - 0.01;
+	n = noise( normal, 10.1, 0.9 ) * 0.01;
+	rn = noise( normal, 0.1, 0.9) * 0.019 ;
 
+
+	
 	// Get the three threshold samples
 	float s = 0.5;
 	float a = 0.8;
@@ -185,19 +191,21 @@ void main( ){
 	float t2 = snoise( ( normal + 800.0 ) * a) - s;
 	float t3 = snoise( ( normal + 1600.0 ) * a) - s;
 	float threshold = max( t1 * t2 * t3, 0.0 );
+	// float threshold = texture2D( turb, vUv ).r;
+	sn = snoise( normal * 0.9 ) * threshold;
 
-	float sn = snoise( normal * 0.9 ) * threshold;
 	float tn = n + rn + sn;
 
 
-	vec2 lookAt = vUv;
-	lookAt.y += tn;
+	vec2 lookAt = vec2( noise( normal, 2.0, 20.9 ) * abs( normal.y * normal.y * normal.y ), vUv.y + tn );
+	// lookAt.x = snoise( normal );
+	// lookAt.y += tn;
 
 	vec4 c = texture2D( diffuse, lookAt );
 
 	// c.r += threshold * 3.0;
 	
 	
-	gl_FragColor = c;
-	// gl_FragColor = vec4( ( tn + 1.0 ) / 2.0 );
+	gl_FragColor = c * 0.3 * smoothstep( 0.0, 0.6, normal.z );
+	// gl_FragColor = vec4( vec3( threshold ) , 1.0 );
 }

@@ -264,15 +264,15 @@ void main() {
 	float m = ( snoise( vec4( normal, time * 10.0 ) * 10.0 ) + 1.0 ) / 2.0;
 	np *= 1.0 + m * 0.01;
 
-	vCol = vec4( vec3( ( dir  ) ), m );
-	vCol = vec4( ( position.y + 1.0 ) / 2.0, m, 0.0, dir );
-	vCol = texture2D( diffuse, uv );
-	vCol.rgb *= 0.02;
+	// vCol = vec4( vec3( ( 1.0, 1.0, 1.0 ) ), 0.002 );
+	// vCol = vec4( ( position.y + 1.0 ) / 2.0, m, 0.0, dir );
+	vCol = vec4( vec3( texture2D( diffuse, vec2( 0.0, ( np.y + 1.0 ) / 2.0 ) ).r ), 0.002 * ( smoothstep( 0.0, 0.4, np.z ) ) ) ;
+	// vCol.rgb *= 0.9;
 
-	np *= 200.0;
+	np *= 199.0;
 
 	float pNoise = ( snoise( vec4( normal, time * 10.0 ) * 10.0 ) + 1.0 ) / 2.0;
-	vPointSize = map( vec4( 0, 0.4, 1.0, 15.0 ), pNoise );
+	vPointSize = map( vec4( 0, 0.5, 1.0, 15.0 ), pNoise );
 	
 
 	vec4 mvPosition = modelViewMatrix * vec4( np, 1.0 );
