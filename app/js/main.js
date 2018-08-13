@@ -44,7 +44,7 @@ var Main = function( ) {
 	var material = new THREE.ShaderMaterial({
 		uniforms: {
 			time: { value: this.time },
-			diffuse : { value : new THREE.TextureLoader().load('img/colorgs.png') },
+			diffuse : { value : new THREE.TextureLoader().load('img/color2.png') },
 			pointTexture : { value : particleTexture },
 			texturePosition: { value : null },
 		},
@@ -60,7 +60,7 @@ var Main = function( ) {
 	this.planetGroup.add( this.particles );
 
 	var geometry = new THREE.SphereGeometry( 201, 32, 32 );
-	// var material = new THREE.MeshBasicMaterial( {color: 0x000000} );
+	
 	var material = new THREE.ShaderMaterial({
 		uniforms: {
 			time: { value: this.time },
@@ -74,6 +74,9 @@ var Main = function( ) {
 		depthTest : true,
 		depthWrite : true
 	});
+
+	var material = new THREE.MeshBasicMaterial( {color: 0x000000} );
+
 	this.sphere = new THREE.Mesh( geometry, material );
 	this.planetGroup.add( this.sphere );
 
@@ -152,8 +155,8 @@ Main.prototype.step = function( time ) {
 	this.firstPass = false;
 	this.renderer.render( this.scene, this.camera );
 
-	// this.planetGroup.rotation.y -= 0.0002	
-	// this.planetGroup.rotation.x = Math.sin( this.time ) * 0.1;
+	// this.planetGroup.rotation.y -= 0.002	
+	this.planetGroup.rotation.x = Math.sin( this.time * Math.PI ) * 0.01;
 	// this.renderer.render( this.planetScene, this.planetCamera );
 
 	if( this.even ){

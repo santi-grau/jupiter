@@ -240,16 +240,7 @@ void main() {
 	float n = noise( normal, 10.1, 0.9 ) * 0.06;
 	float rn = rnoise( normal, 5.8, 0.75) * 0.025 - 0.01;
 
-	// // Get the three threshold samples	
-	float s = 0.5;
-	float a = 0.8;
-	float t1 = snoise( normal * a ) - s;
-	float t2 = snoise( ( normal + 800.0 ) * a) - s;
-	float t3 = snoise( ( normal + 1600.0 ) * a) - s;
-	float threshold = max( t1 * t2 * t3, 0.0 );
-
-	float sn = snoise( normal * 0.9 ) * threshold;
-	float tn = n + rn + sn;
+	float tn = n + rn;
 
 	float dir = snoise( vec2( 0.0, 10.0 + position.y * 6.0 ) );
 	vec3 np = applyAxisAngle( position, normalize( vec3( 0.0, 1.0, 0.0 ) ), M_PI * 2.0 * time * dir );
@@ -266,16 +257,20 @@ void main() {
 
 	// vCol = vec4( vec3( ( 1.0, 1.0, 1.0 ) ), 0.002 );
 	// vCol = vec4( ( position.y + 1.0 ) / 2.0, m, 0.0, dir );
-	vCol = vec4( vec3( texture2D( diffuse, vec2( 0.0, ( np.y + 1.0 ) / 2.0 ) ).r ), 0.002 * ( smoothstep( 0.0, 0.4, np.z ) ) ) ;
+	vec4 vC = texture2D( diffuse, vec2( ( snoise( normal ) + 1.0 ) / 2.0, ( np.y + 1.0 ) / 2.0 ) );
+
+
+	vCol = vC * vec4( m ) ;
+
 	// vCol.rgb *= 0.9;
 
 	np *= 199.0;
 
 	float pNoise = ( snoise( vec4( normal, time * 10.0 ) * 10.0 ) + 1.0 ) / 2.0;
-	vPointSize = map( vec4( 0, 0.5, 1.0, 15.0 ), pNoise );
+	vPointSize = map( vec4( 0, 0.2, 1.0, 15.0 ), pNoise );
 	
 
 	vec4 mvPosition = modelViewMatrix * vec4( np, 1.0 );
 	gl_Position = projectionMatrix * mvPosition;
-	gl_PointSize = vPointSize;
+	gl_PointSize = 6.0;
 }

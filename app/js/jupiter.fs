@@ -185,14 +185,14 @@ void main( ){
 
 	
 	// Get the three threshold samples
-	float s = 0.5;
-	float a = 0.8;
-	float t1 = snoise( normal * a ) - s;
-	float t2 = snoise( ( normal + 800.0 ) * a) - s;
-	float t3 = snoise( ( normal + 1600.0 ) * a) - s;
-	float threshold = max( t1 * t2 * t3, 0.0 );
+	// float s = 0.5;
+	// float a = 0.8;
+	// float t1 = snoise( normal * a ) - s;
+	// float t2 = snoise( ( normal + 800.0 ) * a) - s;
+	// float t3 = snoise( ( normal + 1600.0 ) * a) - s;
+	// float threshold = max( t1 * t2 * t3, 0.0 );
 	// float threshold = texture2D( turb, vUv ).r;
-	sn = snoise( normal * 0.9 ) * threshold;
+	// sn = snoise( normal * 0.9 ) * threshold;
 
 	float tn = n + rn + sn;
 
