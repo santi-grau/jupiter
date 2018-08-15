@@ -206,6 +206,40 @@ float rnoise(vec3 position, float frequency, float persistence) {
 	return total / maxAmplitude;
 }
 
+vec3 snoiseVec3( vec3 x, float f ){
+	float frequency = f;
+	float amplitude = 1.0;
+
+	float s  = snoise( vec4( vec3( x ), time ) * frequency ) * amplitude ;
+	float s1 = snoise( vec4( x.y - 19.1 , x.z + 33.4 , x.x + 47.2, time ) * frequency ) * amplitude ;
+	float s2 = snoise( vec4( x.z + 74.2 , x.x - 124.5 , x.y + 99.4, time ) * frequency ) * amplitude ;
+	vec3 c = vec3( s , s1 , s2 );
+	return c;
+}
+
+
+vec3 curlNoise( vec3 p, float f ){
+  
+	const float e = .1;
+	vec3 dx = vec3( e , 0.0 , 0.0 );
+	vec3 dy = vec3( 0.0 , 	e	, 0.0 );
+	vec3 dz = vec3( 0.0 , 0.0 , e );
+
+	vec3 p_x0 = snoiseVec3( p - dx, f );
+	vec3 p_x1 = snoiseVec3( p + dx, f );
+	vec3 p_y0 = snoiseVec3( p - dy, f );
+	vec3 p_y1 = snoiseVec3( p + dy, f );
+	vec3 p_z0 = snoiseVec3( p - dz, f );
+	vec3 p_z1 = snoiseVec3( p + dz, f );
+
+	float x = p_y1.z - p_y0.z - p_z1.y + p_z0.y;
+	float y = p_z1.x - p_z0.x - p_x1.z + p_x0.z;
+	float z = p_x1.y - p_x0.y - p_y1.x + p_y0.x;
+
+	const float divisor = 1.0 / ( 2.0 * e );
+	return normalize( vec3( x , y , z ) * divisor );
+}	
+
 vec3 applyAxisAngle( vec3 v, vec3 axis, float angle ){
 	float halfAngle = angle / 2.0;
 
@@ -239,38 +273,39 @@ void main() {
 
 	float n = noise( normal, 10.1, 0.9 ) * 0.06;
 	float rn = rnoise( normal, 5.8, 0.75) * 0.025 - 0.01;
+	vec3 cp = curlNoise( normal, 10.0 );
+	vec3 cp2 = curlNoise( normal, 1.0 );
 
 	float tn = n + rn;
 
 	float dir = snoise( vec2( 0.0, 10.0 + position.y * 6.0 ) );
-	vec3 np = applyAxisAngle( position, normalize( vec3( 0.0, 1.0, 0.0 ) ), M_PI * 2.0 * time * dir );
+	vec3 np = applyAxisAngle( position, normalize( vec3( 0.0, 1.0, 0.0 ) ), M_PI * 2.0 * ( cp2.r + cp.r + time * dir ) );
 
 	float epsilon = atan( position.x / position.z ) - M_PI / 2.0;
-	np = applyAxisAngle( np, normalize( vec3( sin( epsilon ), 0.0, cos( epsilon ) ) ), M_PI / 2.0 * tn );
+	np = applyAxisAngle( np, normalize( vec3( sin( epsilon ), 0.0, cos( epsilon ) ) ), M_PI / 2.0 * ( cp.g * 0.07 + cp2.g * 0.1 + tn ) );
 	
+
 	mag = length( np );
-	float angle = acos( np.y / mag ) / M_PI * 2.0;
 	
 
 	float m = ( snoise( vec4( normal, time * 10.0 ) * 10.0 ) + 1.0 ) / 2.0;
-	np *= 1.0 + m * 0.01;
+	np *= 1.0 + cp.b * 0.01;
 
-	// vCol = vec4( vec3( ( 1.0, 1.0, 1.0 ) ), 0.002 );
-	// vCol = vec4( ( position.y + 1.0 ) / 2.0, m, 0.0, dir );
-	vec4 vC = texture2D( diffuse, vec2( ( snoise( normal ) + 1.0 ) / 2.0, ( np.y + 1.0 ) / 2.0 ) );
+	
+	vec4 vC = texture2D( diffuse, vec2( ( snoise( normal ) + 1.0 ) / 2.0, ( position.y + 1.0 ) / 2.0 ) );
 
 
-	vCol = vC * vec4( m ) ;
+	vCol = vC ;
+	// if( mag > 1.0 ) vCol = vec4( 0.0,0.0,0.0,1.0);
 
-	// vCol.rgb *= 0.9;
 
 	np *= 199.0;
 
 	float pNoise = ( snoise( vec4( normal, time * 10.0 ) * 10.0 ) + 1.0 ) / 2.0;
-	vPointSize = map( vec4( 0, 0.2, 1.0, 15.0 ), pNoise );
+	vPointSize = map( vec4( 0, 0.99, 1.0, 15.0 ), pNoise );
 	
 
 	vec4 mvPosition = modelViewMatrix * vec4( np, 1.0 );
 	gl_Position = projectionMatrix * mvPosition;
-	gl_PointSize = 6.0;
+	gl_PointSize = vPointSize;
 }

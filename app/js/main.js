@@ -6,7 +6,7 @@ var Main = function( ) {
 	this.node = document.getElementById('main');
 
 	this.time = Math.random();
-	this.timeInc = 0.0005;
+	this.timeInc = 0.0001;
 
 	this.even = true;
 	this.firstPass = true;
@@ -55,27 +55,26 @@ var Main = function( ) {
 		depthWrite : true
 	});
 	
-	// this.particles = new THREE.Mesh( geometry, material );
 	this.particles = new THREE.Points(geometry, material);
 	this.planetGroup.add( this.particles );
 
 	var geometry = new THREE.SphereGeometry( 201, 32, 32 );
 	
-	var material = new THREE.ShaderMaterial({
-		uniforms: {
-			time: { value: this.time },
-			turb : { value : new THREE.TextureLoader().load('img/turb.png') },
-			diffuse : { value : new THREE.TextureLoader().load('img/color2.png') },
-			texturePosition: { value : null },
-		},
-		fragmentShader: require('./jupiter.fs'),
-		vertexShader: require('./jupiter.vs'),
-		transparent: true,
-		depthTest : true,
-		depthWrite : true
-	});
+	// var material = new THREE.ShaderMaterial({
+	// 	uniforms: {
+	// 		time: { value: this.time },
+	// 		turb : { value : new THREE.TextureLoader().load('img/turb.png') },
+	// 		diffuse : { value : new THREE.TextureLoader().load('img/color2.png') },
+	// 		texturePosition: { value : null },
+	// 	},
+	// 	fragmentShader: require('./jupiter.fs'),
+	// 	vertexShader: require('./jupiter.vs'),
+	// 	transparent: true,
+	// 	depthTest : true,
+	// 	depthWrite : true
+	// });
 
-	var material = new THREE.MeshBasicMaterial( {color: 0x000000} );
+	var material = new THREE.MeshBasicMaterial( {color: 0x111111} );
 
 	this.sphere = new THREE.Mesh( geometry, material );
 	this.planetGroup.add( this.sphere );
@@ -138,8 +137,8 @@ Main.prototype.step = function( time ) {
 
 	this.time += this.timeInc;
 
-	if( this.sphere.material.uniforms ) this.sphere.material.uniforms.time.value = this.time;
-	if( this.particles.material.uniforms ) this.particles.material.uniforms.time.value = this.time;
+	if( this.sphere && this.sphere.material.uniforms ) this.sphere.material.uniforms.time.value = this.time;
+	if( this.particles && this.particles.material.uniforms ) this.particles.material.uniforms.time.value = this.time;
 
 	if( this.even ){
 		if( this.firstPass ) this.renderer.render( this.planetScene, this.planetCamera, this.renderTargetA );
@@ -156,7 +155,7 @@ Main.prototype.step = function( time ) {
 	this.renderer.render( this.scene, this.camera );
 
 	// this.planetGroup.rotation.y -= 0.002	
-	this.planetGroup.rotation.x = Math.sin( this.time * Math.PI ) * 0.01;
+	// this.planetGroup.rotation.x = Math.sin( this.time * Math.PI ) * 0.01;
 	// this.renderer.render( this.planetScene, this.planetCamera );
 
 	if( this.even ){

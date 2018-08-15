@@ -171,6 +171,41 @@ float rnoise(vec3 position, float frequency, float persistence) {
 	return total / maxAmplitude;
 }
 
+
+vec3 snoiseVec3( vec3 x ){
+	float frequency = 30.0;
+	float amplitude = 1.0;
+
+	float s  = snoise( vec4( vec3( x ), time ) * frequency ) * amplitude ;
+	float s1 = snoise( vec4( x.y - 19.1 , x.z + 33.4 , x.x + 47.2, time ) * frequency ) * amplitude ;
+	float s2 = snoise( vec4( x.z + 74.2 , x.x - 124.5 , x.y + 99.4, time ) * frequency ) * amplitude ;
+	vec3 c = vec3( s , s1 , s2 );
+	return c;
+}
+
+
+vec3 curlNoise( vec3 p ){
+  
+	const float e = .1;
+	vec3 dx = vec3( e , 0.0 , 0.0 );
+	vec3 dy = vec3( 0.0 , 	e	, 0.0 );
+	vec3 dz = vec3( 0.0 , 0.0 , e );
+
+	vec3 p_x0 = snoiseVec3( p - dx );
+	vec3 p_x1 = snoiseVec3( p + dx );
+	vec3 p_y0 = snoiseVec3( p - dy );
+	vec3 p_y1 = snoiseVec3( p + dy );
+	vec3 p_z0 = snoiseVec3( p - dz );
+	vec3 p_z1 = snoiseVec3( p + dz );
+
+	float x = p_y1.z - p_y0.z - p_z1.y + p_z0.y;
+	float y = p_z1.x - p_z0.x - p_x1.z + p_x0.z;
+	float z = p_x1.y - p_x0.y - p_y1.x + p_y0.x;
+
+	const float divisor = 1.0 / ( 2.0 * e );
+	return normalize( vec3( x , y , z ) * divisor );
+}	
+
 void main( ){
 
 	// vec3 normal = ( texture2D( icoNormal, vUv ).rgb - vec3( 0.5 ) ) * 2.0;
@@ -178,11 +213,12 @@ void main( ){
 	float n = 0.0;
 	float sn = 0.0;
 	float rn = 0.0;
+	
 
 	n = noise( normal, 10.1, 0.9 ) * 0.01;
 	rn = noise( normal, 0.1, 0.9) * 0.019 ;
 
-
+	vec3 cn = curlNoise( normal );
 	
 	// Get the three threshold samples
 	// float s = 0.5;
@@ -191,10 +227,9 @@ void main( ){
 	// float t2 = snoise( ( normal + 800.0 ) * a) - s;
 	// float t3 = snoise( ( normal + 1600.0 ) * a) - s;
 	// float threshold = max( t1 * t2 * t3, 0.0 );
-	// float threshold = texture2D( turb, vUv ).r;
 	// sn = snoise( normal * 0.9 ) * threshold;
 
-	float tn = n + rn + sn;
+	float tn = n + rn + sn + cn.r * 0.01;
 
 
 	vec2 lookAt = vec2( noise( normal, 2.0, 20.9 ) * abs( normal.y * normal.y * normal.y ), vUv.y + tn );
@@ -206,6 +241,7 @@ void main( ){
 	// c.r += threshold * 3.0;
 	
 	
-	gl_FragColor = c * 0.3 * smoothstep( 0.0, 0.6, normal.z );
+	gl_FragColor = vec4( cn, 1.0 ) ;
+	gl_FragColor = c;
 	// gl_FragColor = vec4( vec3( threshold ) , 1.0 );
 }
