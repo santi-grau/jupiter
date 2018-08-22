@@ -6,7 +6,7 @@ module.exports = function( self ){
 		var texSize = msg.data.texSize;
 		var ps = [];
 		var geometry = new THREE.BufferGeometry();
-		var position = [], color = [], uv = [], normal = [];
+		var position = [], color = [], uv = [], puv = [], normal = [];
 
 		for( var i = 0 ; i < texSize ; i++ ){
 			var a = [];
@@ -33,14 +33,17 @@ module.exports = function( self ){
 				iterationCount++;
 			}
 
+			
+			puv.push( Math.floor( i / texSize ) / texSize, ( i % texSize ) / texSize );
 			uv.push( uvx, uvy );
 			position.push( p.x, p.y, p.z );
 			color.push( 1, 1, 1, 1 );
 			normal.push( p.x, p.y, p.z );
 		}
-
+		// console.log( puv )
 		geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array( position ), 3 ) );
 		geometry.addAttribute( 'color', new THREE.BufferAttribute( new Float32Array( color ), 4 ) );
+		geometry.addAttribute( 'puv', new THREE.BufferAttribute( new Float32Array( puv ), 2 ) );
 		geometry.addAttribute( 'uv', new THREE.BufferAttribute( new Float32Array( uv ), 2 ) );
 		geometry.addAttribute( 'normal', new THREE.BufferAttribute( new Float32Array( normal ), 3 ) );
 

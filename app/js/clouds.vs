@@ -1,6 +1,7 @@
-varying vec2 vUv;
+attribute vec2 puv;
 
 uniform float time;
+uniform sampler2D data;
 
 vec3 applyAxisAngle( vec3 v, vec3 axis, float angle ){
 	float halfAngle = angle / 2.0;
@@ -22,6 +23,9 @@ vec3 applyAxisAngle( vec3 v, vec3 axis, float angle ){
 }
 
 void main() {
-	vUv = uv;
-	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+	vec3 p = position;
+	vec3 c = texture2D( data, puv ).rgb;
+
+	gl_Position = projectionMatrix * modelViewMatrix * vec4( c, 1.0 );
+	gl_PointSize = 3.0;
 }

@@ -7,8 +7,6 @@ var Particles = require('./Particles')
 var Main = function( ) {
 	this.node = document.getElementById('main');
 
-	
-
 	// Three scene
 	this.renderer = new THREE.WebGLRenderer( { alpha : true, antialias : true } );
 	this.node.appendChild( this.renderer.domElement );
@@ -17,13 +15,12 @@ var Main = function( ) {
 	this.camera = new THREE.OrthographicCamera();
 	var controls = new OrbitControls( this.camera );
 
-	this.particles = new Particles( { texSize : 256 } )
+	this.particles = new Particles( { texSize : 256 }, this.renderer )
 	this.particles.scale.set( 200, 200, 200 );
 	this.scene.add( this.particles );
 	this.particles.on('ready', this.particlesReady.bind( this ) );
 	
 	this.resize();
-	
 }
 
 Main.prototype.particlesReady = function(){

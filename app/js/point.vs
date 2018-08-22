@@ -238,7 +238,7 @@ vec3 curlNoise( vec3 p, float f ){
 
 	const float divisor = 1.0 / ( 2.0 * e );
 	return normalize( vec3( x , y , z ) * divisor );
-}	
+}
 
 vec3 applyAxisAngle( vec3 v, vec3 axis, float angle ){
 	float halfAngle = angle / 2.0;

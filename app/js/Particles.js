@@ -1,25 +1,18 @@
 var EventEmitter = require('events').EventEmitter;
 var geoWorker = require('webworkify')( require( './geometry' ) );
+var ComputeTexture = require( './ComputeTexture' );
 
-var Particles = function( settings ){
+var Particles = function( settings, renderer ){
 	THREE.Object3D.apply( this, arguments );
 
 	this.time = Math.random();
-	this.timeInc = 0.0001;
+	this.timeInc = 0.01;
 
 	this.texSize = settings.texSize || 64;
+	this.renderer = renderer;
 
 	var geometry = new THREE.BufferGeometry();
 	var position = [], color = [], uv = [], normal = [];
-
-	this.material = new THREE.ShaderMaterial({
-		uniforms: {
-			time: { value: this.time }
-		},
-		fragmentShader: require('./clouds.fs'),
-		vertexShader: require('./clouds.vs'),
-		transparent: true
-	});
 
 	var img = new Image();
 	img.addEventListener( 'load', this.imageReady.bind( this ) );
@@ -33,10 +26,10 @@ Particles.prototype.constructor = Particles;
 Particles.prototype.imageReady = function( e ){
 	var img = e.target;
 	var canvas = document.createElement('canvas');
-	canvas.width = img.width;
-	canvas.height = img.height;
-	canvas.getContext('2d').drawImage( img, 0, 0, img.width, img.height );
-	var pd = canvas.getContext('2d').getImageData( 0, 0, img.width, img.height ).data;
+	canvas.width = this.texSize;
+	canvas.height = this.texSize;
+	canvas.getContext('2d').drawImage( img, 0, 0, this.texSize, this.texSize );
+	var pd = canvas.getContext('2d').getImageData( 0, 0, this.texSize, this.texSize ).data;
 
 	var a = [];
 	for( var i = 0 ; i < pd.length ; i += 4 ) a.push( pd[i] );
@@ -50,7 +43,28 @@ Particles.prototype.geometryReady = function( e ){
 	var loader = new THREE.BufferGeometryLoader();
 	var geometry = loader.parse( data.geo );
 	
-	this.particles = new THREE.Points( geometry, this.material );
+	var data = []
+	var uvs = geometry.attributes.uv;
+	var ps = geometry.attributes.position.array;
+	
+	for( var i = 0 ; i < ps.length ; i += 3 ) data.push( ps[ i ], ps[ i + 1 ], ps[ i + 2 ] );
+	
+	var texture = new THREE.DataTexture( new Float32Array( data ), this.texSize, this.texSize, THREE.RGBFormat, THREE.FloatType );
+
+	texture.needsUpdate = true;
+	this.computeTexture = new ComputeTexture( this.texSize, this.texSize, { type: THREE.FloatType, format: THREE.RGBAFormat, magFilter : THREE.NearestFilter }, texture, this.renderer );
+
+	var material = new THREE.ShaderMaterial({
+		uniforms: {
+			time: { value: this.time },
+			data : { value : this.computeTexture.texture }
+		},
+		fragmentShader: require('./clouds.fs'),
+		vertexShader: require('./clouds.vs'),
+		transparent: true
+	});
+
+	this.particles = new THREE.Points( geometry, material );
 	this.add( this.particles );
 
 	this.emit('ready');
@@ -58,7 +72,8 @@ Particles.prototype.geometryReady = function( e ){
 
 Particles.prototype.step = function( time ){
 	this.time += this.timeInc;
-	this.material.uniforms.time.value = this.time;
+	this.computeTexture.step( time );
+	if( this.particles ) this.particles.material.uniforms.time.value = this.time;
 }
 
 module.exports = Particles;
