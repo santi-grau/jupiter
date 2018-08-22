@@ -32,7 +32,6 @@
     "webworkify": "^1.5.0"
   },
   "devDependencies": {
-    "body-parser": "^1.17.1",
     "grunt": "^1.0.1",
     "grunt-browserify": "^5.0.0",
     "grunt-contrib-clean": "^1.0.0",
