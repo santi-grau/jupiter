@@ -2,13 +2,14 @@ var ComputeTexture = function( width, height, options, texture, renderer ){
     THREE.WebGLRenderTarget.apply( this, arguments );
    
     // console.log( this, texture );
-    this.tex = texture;
+	this.original = texture;
+	this.tex = texture;
     this.renderer = renderer;
     this.even = true;
 	this.firstPass = true;
 
 	this.time = 0;
-	this.timeInc = 0.001;
+	this.timeInc = 0.00001;
 
     this.buffer0 = new THREE.WebGLRenderTarget( this.width, this.height, { type: THREE.FloatType, format: THREE.RGBAFormat, magFilter : THREE.NearestFilter } );
 	this.buffer1 = new THREE.WebGLRenderTarget( this.width, this.height, { type: THREE.FloatType, format: THREE.RGBAFormat, magFilter : THREE.NearestFilter } );
@@ -26,7 +27,8 @@ var ComputeTexture = function( width, height, options, texture, renderer ){
     var material = new THREE.ShaderMaterial( {
 		uniforms: {
             time : { value : this.time },
-			iChannel0: { value: this.tex }
+			iChannel0: { value: this.tex },
+			original: { value: this.original }
 		},
 		transparent : true,
 		vertexShader: require('./gpgpu.vs'),

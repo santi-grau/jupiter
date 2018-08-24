@@ -15,7 +15,10 @@ var Main = function( ) {
 	this.camera = new THREE.OrthographicCamera();
 	var controls = new OrbitControls( this.camera );
 
-	this.particles = new Particles( { texSize : 256 }, this.renderer )
+	this.planetScene = new THREE.Scene();
+	this.planetCamera = new THREE.OrthographicCamera();
+	
+	this.particles = new Particles( { texSize : 255 }, this.renderer )
 	this.particles.scale.set( 200, 200, 200 );
 	this.scene.add( this.particles );
 	this.particles.on('ready', this.particlesReady.bind( this ) );

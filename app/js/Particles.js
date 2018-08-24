@@ -44,19 +44,24 @@ Particles.prototype.geometryReady = function( e ){
 	var geometry = loader.parse( data.geo );
 	
 	var data = []
-	var uvs = geometry.attributes.uv;
+	var uvs = geometry.attributes.uv.array;
 	var ps = geometry.attributes.position.array;
 	
-	for( var i = 0 ; i < ps.length ; i += 3 ) data.push( ps[ i ], ps[ i + 1 ], ps[ i + 2 ] );
+	for( var i = 0 ; i < ps.length ; i += 3 ) data.push( ps[ i ], ps[ i + 1 ], ps[ i + 2 ], Math.random() );
+
+	// for( var i = 0 ; i < uvs.length ; i += 2 ) data.push( uvs[ i ], uvs[ i + 1 ], 0, Math.random() );
 	
-	var texture = new THREE.DataTexture( new Float32Array( data ), this.texSize, this.texSize, THREE.RGBFormat, THREE.FloatType );
+	var texture = new THREE.DataTexture( new Float32Array( data ), this.texSize, this.texSize, THREE.RGBAFormat, THREE.FloatType );
 
 	texture.needsUpdate = true;
 	this.computeTexture = new ComputeTexture( this.texSize, this.texSize, { type: THREE.FloatType, format: THREE.RGBAFormat, magFilter : THREE.NearestFilter }, texture, this.renderer );
 
+	var colorTex = new THREE.TextureLoader().load( 'img/color2.png' );
+
 	var material = new THREE.ShaderMaterial({
 		uniforms: {
 			time: { value: this.time },
+			colr : { value : colorTex },
 			data : { value : this.computeTexture.texture }
 		},
 		fragmentShader: require('./clouds.fs'),
