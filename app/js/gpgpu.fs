@@ -301,7 +301,7 @@ void main( ){
 	vec4 c = texture2D( iChannel0, vUv );
 	vec4 o = texture2D( original, vUv );
 
-	float regions = pow( sin( M_PI / 2.0 * ( c.g + 1.0 ) ) , 2.0 ) * 0.6 + 0.4; 
+	float regions = pow( sin( M_PI / 2.0 * ( c.g + 1.0 ) ) , 2.0 ) * 0.6 + 0.4;
 	
 	float speed = snoise( vec2( 0.5, c.g ) );
 	float epsilon = atan( c.r / c.b ) - M_PI / 2.0;
@@ -311,11 +311,12 @@ void main( ){
 	c.rgb = np;
 	
 	// move with cNoise
-	vec3 curl = curlNoise( c.rgb, 20.0 ) * vec3( 0.001 );
+	vec3 curl = curlNoise( c.rgb, 8.0 ) * vec3( 0.001 );
 	c.rgb += ( 1.0 - regions ) * curl;
+	
 	// fade down
 	
-	c.a -= 0.0001;
+	c.a -= 0.00001;
 	if( c.a < 0.01 ) c = o;
 
 	gl_FragColor = c;

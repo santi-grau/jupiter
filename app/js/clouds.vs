@@ -13,9 +13,10 @@ void main() {
 	vAlpha = c.a;
 
 	// vColor = texture2D( colr, vec2( 0.0, ( c.g + 1.0 ) / 2.0 ) ).rgb;
-	vColor = vec3( texture2D( colr, vec2( 0.0, ( c.g + 1.0 ) / 2.0 ) ).r * c.b );
-
+	float clr = texture2D( colr, vec2( 0.0, ( c.g + 1.0 ) / 2.0 ) ).r;
+	vColor = vec3( 1.0 );
+	vColor *= c.b;
 
 	gl_Position = projectionMatrix * modelViewMatrix * vec4( normalize( c.rgb ), 1.0 );
-	gl_PointSize = 3.0;
+	gl_PointSize = 2.0;
 }
